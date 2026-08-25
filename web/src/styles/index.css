@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    font-family: 'Comic Sans MS', 'PingFang SC', 'SF Pro', system-ui, sans-serif;
+    background: linear-gradient(135deg, #FFF8F0 0%, #FFE8F0 50%, #F0F0FF 100%);
+    background-attachment: fixed;
+    color: #2D3436;
+    font-size: 28px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+    outline: none;
+    font-size: inherit;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  ul, ol {
+    list-style: none;
+  }
+}
+
+@layer components {
+  /* 卡通风格按钮 — 渐变 + 立体阴影 */
+  .btn-primary {
+    @apply text-white px-lg py-sm rounded-btn text-body font-bold transition-all duration-200;
+    background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+    box-shadow: 0 6px 0 #4834D4, 0 8px 20px rgba(108,92,231,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #4834D4, 0 12px 28px rgba(108,92,231,0.4);
+  }
+  .btn-primary:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #4834D4, 0 4px 12px rgba(108,92,231,0.3);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-text-primary border-2 border-primary-light px-lg py-sm rounded-btn text-body font-bold transition-all duration-200;
+    box-shadow: 0 4px 0 rgba(162,155,254,0.3);
+  }
+  .btn-secondary:hover {
+    background: #F8F7FF;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(162,155,254,0.3);
+  }
+  .btn-secondary:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(162,155,254,0.3);
+  }
+
+  .btn-danger {
+    @apply text-white px-lg py-sm rounded-btn text-body font-bold transition-all duration-200;
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+    box-shadow: 0 6px 0 #E55353, 0 8px 20px rgba(255,107,107,0.3);
+  }
+  .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #E55353, 0 12px 28px rgba(255,107,107,0.4);
+  }
+  .btn-danger:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #E55353;
+  }
+
+  /* 卡通风格卡片 — 大圆角 + 柔和阴影 */
+  .card {
+    @apply bg-white rounded-card border-2 border-cream;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.04), 0 12px 32px rgba(108,92,231,0.08);
+    transition: all 0.3s ease;
+  }
+
+  /* 输入框 — 圆润卡通 */
+  .input-base {
+    @apply w-full bg-white border-primary-light rounded-btn px-md py-sm text-body text-text-primary transition-all duration-200;
+    border-width: 3px;
+    border-style: solid;
+  }
+  .input-base:focus {
+    border-color: #6C5CE7;
+    box-shadow: 0 0 0 4px rgba(108,92,231,0.15);
+  }
+  .input-base::placeholder {
+    color: #B2BEC3;
+  }
+
+  /* 标签 — 胶囊形状 */
+  .tag {
+    @apply inline-flex items-center px-sm py-xs rounded-tag text-caption font-bold;
+  }
+
+  /* 导航链接 */
+  .nav-link {
+    @apply text-text-secondary hover:text-primary transition-all duration-200 text-body font-bold px-sm py-xs rounded-btn;
+  }
+  .nav-link:hover {
+    background: rgba(108,92,231,0.08);
+    transform: translateY(-1px);
+  }
+
+  .nav-link-active {
+    @apply text-white font-bold;
+    background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+    box-shadow: 0 4px 12px rgba(108,92,231,0.3);
+  }
+}
+
+/* 骨架屏动画 */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background-color: #FFE0D0;
+  border-radius: 20px;
+}
+
+/* 打字机光标 */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typewriter-cursor::after {
+  content: '▋';
+  animation: blink 1s infinite;
+  color: #6C5CE7;
+  font-weight: bold;
+}
+
+/* AI 消息 Markdown 样式微调 */
+.ai-message p {
+  margin-bottom: 12px;
+}
+
+.ai-message p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-message .katex {
+  font-size: 1.05em;
+}
+
+.ai-message .katex-display {
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+/* 滚动条 — 圆润卡通 */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,224,208,0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #A29BFE, #6C5CE7);
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #6C5CE7, #4834D4);
+}
+
+/* 渐变文字 */
+.gradient-text {
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 50%, #FD79A8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 卡通浮动装饰 */
+.float-decoration {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.15;
+  font-size: 120px;
+}
+
+/* 卡通选中状态 */
+.cartoon-selected {
+  background: linear-gradient(135deg, rgba(108,92,231,0.1) 0%, rgba(162,155,254,0.1) 100%);
+  border: 3px solid #6C5CE7 !important;
+  box-shadow: 0 4px 16px rgba(108,92,231,0.15);
+}

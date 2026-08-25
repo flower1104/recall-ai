@@ -1,0 +1,16 @@
+{
+  "name": "recall-ai",
+  "version": "1.0.0",
+  "description": "Recall AI智能错题本 - 全栈应用",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "cd web && npm run dev",
+    "dev:api": "cd api && npm run dev",
+    "install:all": "npm install && cd web && npm install && cd ../api && npm install",
+    "build": "cd web && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
