@@ -1,12 +1,11 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useMemo } from 'react'
 import { useAuthStore } from '@/store/auth'
 import NetworkBanner from '@/components/common/NetworkBanner'
-import dayjs from 'dayjs'
 
 const NAV_ITEMS = [
   { path: '/', label: '首页', icon: '🏠' },
   { path: '/notebooks', label: '错题', icon: '📔' },
+  { path: '/checklist', label: '考前冲刺', icon: '🎯' },
   { path: '/dashboard', label: '仪表盘', icon: '📊' },
   { path: '/review', label: '复习中心', icon: '🔄' },
   { path: '/create', label: '录入错题', icon: '✏️' },
@@ -18,11 +17,6 @@ export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
-
-  // 考研倒计时 — 默认目标：2026-12-20（可由后续版本改为可配置）
-  const examDate = useMemo(() => dayjs('2026-12-20'), [])
-  const daysToExam = examDate.diff(dayjs(), 'day')
-  const examLabel = daysToExam > 0 ? `距考研还有 ${daysToExam} 天` : '考研进行中'
 
   const handleLogout = () => {
     if (confirm('确定退出登录？👋')) {
@@ -94,27 +88,6 @@ export default function Layout() {
             )
           })}
         </nav>
-
-        {/* 考研倒计时小卡片 */}
-        <div className="px-md pb-sm">
-          <div
-            className="rounded-card p-md"
-            style={{
-              background: 'linear-gradient(135deg, #F5E6D3 0%, #E8D5B7 100%)',
-              border: '1px solid rgba(139,109,63,0.15)',
-            }}
-          >
-            <div className="text-caption" style={{ color: '#8B6D3F', fontSize: '12px' }}>
-              🎯 考研冲刺中
-            </div>
-            <div className="font-bold mt-xs" style={{ color: '#5B4423', fontSize: '13px', lineHeight: 1.5 }}>
-              {examLabel}
-            </div>
-            <div className="mt-xs" style={{ color: '#8B6D3F', fontSize: '11px' }}>
-              坚持学习 12 天
-            </div>
-          </div>
-        </div>
 
         {/* 用户区域 */}
         <div

@@ -2,7 +2,7 @@ import request from './request'
 import type {
   ApiResponse, AuthResponse, LoginRequest, RegisterRequest,
   Notebook, Question, QASession, QAMessage, OCRResponse,
-  AnalyticsOverview, AnalyticsTrend, WeakPoint, ReviewResult,
+  AnalyticsOverview, AnalyticsTrend, WeakPoint, ReviewResult, StudyChecklist,
 } from '@/types'
 
 // ==================== Auth API ====================
@@ -176,5 +176,10 @@ export async function getAnalyticsTrend(days: number = 30): Promise<AnalyticsTre
 
 export async function getWeakPoints(): Promise<WeakPoint[]> {
   const res = await request.get<ApiResponse<WeakPoint[]>>('/analytics/weak-points')
+  return res.data.data
+}
+
+export async function getStudyChecklist(): Promise<StudyChecklist> {
+  const res = await request.get<ApiResponse<StudyChecklist>>('/analytics/checklist')
   return res.data.data
 }

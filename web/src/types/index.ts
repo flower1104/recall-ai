@@ -120,6 +120,33 @@ export interface WeakPoint {
   count: number
 }
 
+// 考前冲刺清单
+export type ChecklistStatus = 'weak' | 'medium' | 'new' | 'good'
+
+export interface ChecklistItem {
+  tag: string
+  total: number
+  wrong: number
+  error_rate: number
+  status: ChecklistStatus
+  /** 触类旁通：共现知识点 */
+  related: string[]
+  /** 相关错题标题 */
+  sample_titles: string[]
+}
+
+export interface StudyChecklist {
+  items: ChecklistItem[]
+  summary: {
+    total_points: number
+    weak_points: number
+    medium_points: number
+    new_points: number
+    mastered_points: number
+    total_questions: number
+  }
+}
+
 // API Response
 export interface ApiResponse<T = unknown> {
   code: number

@@ -102,6 +102,90 @@ router.get('/weak-points', (req, res) => {
   success(res, weakPoints)
 })
 
+// GET /analytics/checklist - 考前冲刺知识清单（错题知识点聚合 + 触类旁通）
+router.get('/checklist', (req, res) => {
+  const userId = req.userId
+
+  const userQuestions = db.questions.filter((q) => {
+    const nb = db.notebooks.find((n) => n.id === q.notebook_id && n.user_id === userId)
+    return !!nb
+  })
+
+  // 1. 聚合知识点统计
+  const tagStats = {}
+  const tagQuestions = {}
+  for (const q of userQuestions) {
+    if (!q.knowledge_points) continue
+    const tags = q.knowledge_points.split(',').map((t) => t.trim()).filter(Boolean)
+    for (const tag of tags) {
+      if (!tagStats[tag]) {
+        tagStats[tag] = { total: 0, wrong: 0, reviewed: false }
+        tagQuestions[tag] = []
+      }
+      tagStats[tag].total++
+      tagQuestions[tag].push(q)
+
+      const records = db.reviewRecords.filter((r) => r.question_id === q.id && r.user_id === userId)
+      if (records.length > 0) tagStats[tag].reviewed = true
+      if (records.some((r) => !r.is_correct)) tagStats[tag].wrong++
+    }
+  }
+
+  // 2. 共现分析 → 触类旁通（同一道题里一起出现过的其他知识点）
+  const cooccurrence = {}
+  for (const tag of Object.keys(tagQuestions)) {
+    const relatedCounts = {}
+    for (const q of tagQuestions[tag]) {
+      const otherTags = (q.knowledge_points.split(',').map((t) => t.trim()).filter(Boolean))
+        .filter((t) => t !== tag)
+      for (const ot of otherTags) {
+        relatedCounts[ot] = (relatedCounts[ot] || 0) + 1
+      }
+    }
+    cooccurrence[tag] = Object.entries(relatedCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([t]) => t)
+  }
+
+  // 3. 组装清单项
+  const items = Object.entries(tagStats).map(([tag, stats]) => {
+    const errorRate = stats.total > 0 ? Math.round((stats.wrong / stats.total) * 100) : 0
+    let status = 'new'
+    if (stats.reviewed) {
+      status = errorRate >= 60 ? 'weak' : errorRate >= 30 ? 'medium' : 'good'
+    }
+    return {
+      tag,
+      total: stats.total,
+      wrong: stats.wrong,
+      error_rate: errorRate,
+      status,
+      related: cooccurrence[tag] || [],
+      sample_titles: (tagQuestions[tag] || []).slice(0, 3).map((q) => q.title || '未命名题目'),
+    }
+  })
+
+  // 排序：薄弱优先 → 错误率降序 → 题数降序
+  const order = { weak: 0, medium: 1, new: 2, good: 3 }
+  items.sort((a, b) => {
+    if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status]
+    if (b.error_rate !== a.error_rate) return b.error_rate - a.error_rate
+    return b.total - a.total
+  })
+
+  const summary = {
+    total_points: items.length,
+    weak_points: items.filter((i) => i.status === 'weak').length,
+    medium_points: items.filter((i) => i.status === 'medium').length,
+    new_points: items.filter((i) => i.status === 'new').length,
+    mastered_points: items.filter((i) => i.status === 'good').length,
+    total_questions: userQuestions.length,
+  }
+
+  success(res, { items, summary })
+})
+
 /** 计算连续学习天数 */
 function calculateStreakDays(userId) {
   const userQuestions = db.questions.filter((q) => {

@@ -151,6 +151,13 @@
   border-radius: 20px;
 }
 
+/* 实时更新呼吸圆点 */
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(123, 168, 137, 0.45); }
+  70% { box-shadow: 0 0 0 8px rgba(123, 168, 137, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(123, 168, 137, 0); }
+}
+
 /* 打字机光标 */
 @keyframes blink {
   0%, 50% { opacity: 1; }
