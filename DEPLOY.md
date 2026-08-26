@@ -1,175 +1,169 @@
-# 🚀 Recall AI 免费部署上线指南
+# 🚀 免费部署上线指南（recall-ai 错题本）
 
-> 本指南带你把 Recall AI（错题本）免费部署到公网，让任何人都能通过链接访问。
-> 全程零费用，只需一个 GitHub 账号（你已有：flower1104）。
+> 目标：**全程 $0、无需绑卡**，前后端全部上线，任何人都能通过网址访问。
+> 方案：**前端 Vercel + 后端 Hugging Face Spaces**，推 GitHub 自动更新。
+
+## 部署架构
+
+```
+用户浏览器 ──→ Vercel（前端页面，免费静态托管）
+                  │
+                  └──→ Hugging Face Spaces（后端 API + AI 答疑，免费 Docker 容器）
+                           │
+                           └──→ 火山引擎 DeepSeek 大模型
+```
+
+## 方案怎么选（后端）
+
+| 方案 | 费用 | 要不要绑卡 | 配置 | 备注 |
+| --- | --- | --- | --- | --- |
+| **Hugging Face Spaces** ⭐推荐 | 免费 | ❌ 不要 | 2 vCPU / 16GB 内存 | 48 小时无访问才休眠 |
+| Render | 免费 | ⚠️ 需绑 Visa/Mastercard | 0.1 CPU / 512MB | 15 分钟无访问休眠 |
+
+> 没有国际信用卡就直接用 HF Spaces，全流程不要卡。
 
 ---
 
-## 📐 部署架构
+## 第一步：后端 → Hugging Face Spaces（约 10 分钟）
 
-| 部分 | 托管平台 | 免费额度 | 说明 |
-| --- | --- | --- | --- |
-| 前端（web/） | **Vercel** | 个人版完全免费 | 静态页面 + 全球 CDN，自动构建 Vite 项目 |
-| 后端（api/） | **Render** | 750 小时/月 | 长驻 Node.js 服务，支持 SSE 流式 AI 答疑 |
+### 1.1 注册 HF 账号
 
-```
-用户浏览器 ──→ Vercel（前端页面）
-                 │
-                 └──→ Render（后端 API + AI 答疑）
-                          │
-                          └──→ 火山引擎/DeepSeek 大模型
-```
+1. 打开 [huggingface.co](https://huggingface.co) → 右上角 **Sign Up**
+2. 用邮箱注册即可（也支持 GitHub / Google 一键登录），**全程不需要任何银行卡**
 
-**为什么选这两家？**
-- 前端是静态文件，Vercel 是全球最流行的免费前端托管（GitHub 仓库一键导入）
-- 后端是 Express 长驻服务 + SSE 流式响应，需要真正的服务器进程，Render 免费版正好支持
-- 两者都能用 GitHub 账号直接登录，**以后每次 `git push` 代码自动更新线上版本**
+### 1.2 创建 Space（后端容器）
 
----
-
-## 第一步：部署后端到 Render（约 5 分钟）
-
-### 1.1 注册 Render
-1. 打开 https://render.com
-2. 点右上角 **Get Started** 或 **Sign Up**
-3. 选择 **GitHub** 图标登录（推荐，免去填表）→ 授权 Render 访问你的 GitHub
-
-### 1.2 创建 Web Service
-1. 登录后进入 Dashboard，点右上角 **New +** → **Web Service**
-2. 首次会要求连接 GitHub 仓库：点 **Connect account** → 勾选 `flower1104/recall-ai` → Install
-3. 回到 Render 页面，在仓库列表中找到 **recall-ai**，点 **Connect**
-
-### 1.3 填写配置（⚠️ 逐项对照）
+1. 登录后点右上角头像 → **New Space**
+2. 按下表填写：
 
 | 配置项 | 填写值 |
 | --- | --- |
-| Name | `recall-ai-api`（会决定你的域名） |
-| Project | 随意（可留空） |
-| Language | Node（自动检测） |
-| Region | **Singapore**（离中国最近，访问最快） |
-| Branch | `master` |
-| **Root Directory** | `api` ⚠️ 关键！ |
-| Build Command | `npm install` |
-| Start Command | `npm start` |
-| Instance Type | **Free** |
+| Space name | `recall-ai-api` |
+| License | 随意（如 MIT） |
+| **Select SDK** | **Docker** → **Blank** 模板 |
+| Space Hardware | **CPU basic · 2 vCPU · 16GB RAM · FREE** |
+| Visibility | **Public**（免费版仅支持公开） |
 
-### 1.4 添加环境变量
-在同一页面往下翻到 **Environment Variables**，逐条 **Add Environment Variable**：
+3. 点 **Create Space**，得到一个空的白板 Space
 
-| Key | Value | 说明 |
-| --- | --- | --- |
-| `JWT_SECRET` | 一串 32 位以上的随机字母数字（如 `Rx9kP2mQvT7wYb3nZs6jFe4hUg8cLa5d`） | 登录令牌签名密钥，别用示例值 |
-| `LLM_BASE_URL` | 抄你本地 `recall-ai/api/.env` 里的同名值 | 火山引擎/DeepSeek 接口地址 |
-| `LLM_API_KEY` | 抄你本地 `recall-ai/api/.env` 里的同名值 | 大模型密钥（只存在 Render，不会进代码仓库） |
-| `LLM_MODEL` | 抄你本地 `recall-ai/api/.env` 里的同名值 | 模型名 |
-| `CORS_ORIGIN` | 先填 `http://localhost:5173` | 前端部署后再回来补线上地址 |
+### 1.3 配置环境变量（密钥只存这里，不进代码）
 
-> 💡 不知道本地 .env 在哪？用记事本打开 `recall-ai/api/.env`，把三个 `LLM_` 开头的值原样抄进 Render 即可。
+进入 Space 页面 → **Settings** → 翻到 **Variables and secrets** → 逐条 **New secret** 添加：
 
-### 1.5 启动并验证
-1. 点底部 **Create Web Service**（或 Deploy Web Service）
-2. 等待 2~3 分钟，日志出现 `[Recall API] Server running on ...` 即成功
-3. 浏览器访问：`https://recall-ai-api.onrender.com/api/v1/health`
-   看到 `{"code":200,...,"status":"healthy"}` 就说明后端已上线 🎉
+| Key | Value |
+| --- | --- |
+| `JWT_SECRET` | 自编 32 位以上随机字符串（如 `Rx9kP2mQvT7wYb3nZs6jFe4hUg8cLa5d`） |
+| `LLM_BASE_URL` | 抄本地 `api/.env` 同名值（`https://ark.cn-beijing.volces.com/api/v3`） |
+| `LLM_API_KEY` | 抄本地 `api/.env` 同名值（你的火山引擎密钥） |
+| `LLM_MODEL` | 抄本地 `api/.env` 同名值 |
+| `CORS_ORIGIN` | 先填 `http://localhost:5173`（前端上线后回来改成 Vercel 地址） |
+
+### 1.4 推送代码到 Space
+
+仓库已内置一键同步脚本（Windows PowerShell，在 `recall-ai/` 目录执行）：
+
+```powershell
+.\scripts\sync-to-hf.ps1 -HfUser <你的HF用户名> -HfToken <你的HF访问令牌>
+```
+
+- 脚本会自动：组装 `api/` 源码白名单（绝不包含 `.env`/日志）→ 推送到 Space → 清理本地痕迹
+- **HF 访问令牌获取**：HF 头像 → **Settings** → **Access Tokens** → **Create new token** → 类型选 **Write** → 复制保存（形如 `hf_xxxxxxxxxxxx`）
+- 以后后端代码更新，重跑一遍此脚本即可同步
+
+> 也可以让 AI 助手替你执行：把 HF 用户名和令牌发给它即可。
+
+### 1.5 等待构建 + 验证
+
+1. 推送后 Space 自动构建（首次约 2~4 分钟），点 **Logs** 能看到构建进度
+2. 构建完成后浏览器访问：
+
+```
+https://<你的HF用户名>-recall-ai-api.hf.space/api/v1/health
+```
+
+看到 `{"status":"healthy",...}` 即成功 ✅（注意：HF 域名一律小写，用户名含大写也转小写）
 
 ---
 
-## 第二步：部署前端到 Vercel（约 3 分钟）
+## 第二步：前端 → Vercel（约 5 分钟）
 
-### 2.1 注册 Vercel
-1. 打开 https://vercel.com
-2. 点 **Sign Up** → 选择 **Continue with GitHub** → 授权登录
+### 2.1 注册并导入仓库
 
-### 2.2 导入项目
-1. 进入 Dashboard，点 **Add New...** → **Project**
-2. 在仓库列表找到 **recall-ai**，点右侧 **Import**
-   （如果没有，点 Adjust GitHub App Permissions 重新授权）
-
-### 2.3 填写配置（⚠️ 逐项对照）
+1. 打开 [vercel.com](https://vercel.com) → **Sign Up** → 选 **Continue with GitHub**（用 flower1104 账号）
+2. 登录后 **Add New** → **Project** → 找到 `flower1104/recall-ai` → **Import**
+3. 按下表配置：
 
 | 配置项 | 填写值 |
 | --- | --- |
-| Project Name | `recall-ai`（可自定义） |
-| Framework Preset | Vite（自动检测） |
-| **Root Directory** | 点 Edit 改为 `web` ⚠️ 关键！ |
-| Build Command | `npm run build`（自动） |
-| Output Directory | `dist`（自动） |
-| Install Command | `npm install`（自动） |
+| Framework Preset | **Vite**（一般自动识别） |
+| **Root Directory** | **`web`** ⚠️ 千万别漏 |
+| Build Command | `npm run build`（默认即可） |
+| Output Directory | `dist`（默认即可） |
 
-### 2.4 添加环境变量
-展开 **Environment Variables**，添加：
+### 2.2 配置前端环境变量
 
-| Name | Value |
+在 **Environment Variables** 处添加（**先做第一步再做这里，地址才存在**）：
+
+| Key | Value |
 | --- | --- |
-| `VITE_API_BASE_URL` | `https://recall-ai-api.onrender.com/api/v1`（换成第一步你的实际域名） |
+| `VITE_API_BASE_URL` | `https://<你的HF用户名>-recall-ai-api.hf.space/api/v1` |
 
-### 2.5 部署并验证
-1. 点 **Deploy**，等待 1~2 分钟出现 🎉 Confetti 动画即成功
-2. 得到地址，如：`https://recall-ai.vercel.app`
-3. 打开能看到登录页 → 前端上线成功 🎉
+4. 点 **Deploy**，等 1~2 分钟得到线上地址（形如 `https://recall-ai.vercel.app`）
 
 ---
 
-## 第三步：打通前后端（关键收尾）
+## 第三步：打通 CORS（最后一环）
 
-前端已经能访问了，但登录会失败——因为后端还不知道前端的线上地址（跨域拦截）：
+前端地址拿到后，回到 **HF Space → Settings → Variables and secrets**：
 
-1. 回到 **Render** → 打开 `recall-ai-api` 服务 → 顶部 **Environment** 标签
-2. 找到 `CORS_ORIGIN`，把 Value 改成（⚠️ 用你自己的 Vercel 地址替换）：
-   ```
-   https://recall-ai.vercel.app,http://localhost:5173
-   ```
-   > 逗号分隔：第一个是线上前端，第二个保留本地开发能力
-3. 点 **Save Changes**，Render 会自动重新部署（约 1~2 分钟）
-4. 打开 `https://recall-ai.vercel.app`，用 **demo / 123456** 登录测试
-5. 再试试：侧边栏 → AI 答疑 → 问一道数学题 → 检查 AI 是否正常回复
+1. 把 `CORS_ORIGIN` 的值改成你的 Vercel 地址（可逗号分隔保留本地调试地址）：
 
-✅ 全部通过 = 部署完成！把链接发给任何人都能用了。
-
----
-
-## 🔁 以后怎么更新线上版本？
-
-```bash
-# 本地改完代码后
-git add -A
-git commit -m "feat: xxx"
-git push origin master
+```
+https://recall-ai.vercel.app,http://localhost:5173
 ```
 
-推送后 Vercel 和 Render 会**自动重新构建部署**（各需 1~3 分钟），无需任何手动操作。
+2. 改完后 **Settings → Factory reboot**（或重跑同步脚本触发重启）使其生效
+
+### ✅ 端到端验收清单
+
+- [ ] 访问 Vercel 前端地址，页面正常打开
+- [ ] 用 `demo / 123456` 登录成功
+- [ ] 错题列表正常加载
+- [ ] AI 答疑能出结果、数学公式（LaTeX）正常渲染
+- [ ] 手机流量打开同样正常
 
 ---
 
-## ⚠️ 免费版限制（必读）
+## 环境变量速查表
 
-| 限制 | 影响 | 应对 |
+| 变量 | 配在哪 | 说明 |
 | --- | --- | --- |
-| Render 免费实例 **15 分钟无访问会休眠** | 下次访问需等待 30~60 秒唤醒 | 分享链接时提醒对方稍等；或每天访问一次保活 |
-| 后端是**内存数据库** | 服务重启/重新部署后，用户注册的账号和错题会重置（demo 账号和数据自动恢复） | 后续可接入免费 PostgreSQL（如 Neon）做持久化 |
-| 国内直连 vercel.app / onrender.com **速度不稳定** | 部分网络环境访问慢 | 可后续绑定自定义域名优化；校园网/热点一般可访问 |
-| Vercel 免费带宽 100GB/月 | 个人项目远用不完 | 无需担心 |
+| `JWT_SECRET` | HF Space secret | 登录令牌密钥 |
+| `LLM_BASE_URL` | HF Space secret | 火山引擎接口地址 |
+| `LLM_API_KEY` | HF Space secret | 火山引擎密钥 |
+| `LLM_MODEL` | HF Space secret | 模型名 |
+| `CORS_ORIGIN` | HF Space secret | 前端线上地址（逗号分隔可多个） |
+| `VITE_API_BASE_URL` | Vercel | 后端 HF Space 地址 + `/api/v1` |
+
+## 常见问题排查
+
+| 现象 | 原因与解决 |
+| --- | --- |
+| Space 构建失败 | 点 **Logs** 看报错；常见为 Dockerfile 问题或 `npm ci` 失败 |
+| 访问 `hf.space` 地址 502/503 | Space 休眠唤醒中，等 1~2 分钟刷新；或到 Space 页面点 Settings → Factory reboot |
+| 前端请求报 CORS 错误 | `CORS_ORIGIN` 没填对/没包含前端域名；改完要重启（Factory reboot） |
+| AI 答疑报 401/500 | `LLM_API_KEY` 或 `LLM_MODEL` 抄错，对照本地 `api/.env` |
+| 登录后刷新又变未登录 | 正常——内存数据库，Space 重启后账号重置（demo 账号自动恢复）；持久化见下 |
+| 国内打开很慢 | `vercel.app` / `hf.space` 国内直连不稳定，挂代理流畅；正式推广可后续换国内 CDN |
+
+## 免费版限制（提前知道，不慌）
+
+- **HF Spaces 免费版**：48 小时无访问会休眠（任意访问自动唤醒，1~2 分钟）；容器重启后内存数据库清零（demo 账号自动播种恢复）；代码公开（仓库本来就是 public，无影响）
+- **Vercel 免费版**：100GB 流量/月，个人项目完全够用
+- **后续升级路线**：接入免费 PostgreSQL（如 Neon）做数据持久化 → 告别重启丢数据
 
 ---
 
-## 🩺 常见问题排查
+## 附：Render 备选方案（需绑 Visa/Mastercard）
 
-| 症状 | 原因 | 解决 |
-| --- | --- | --- |
-| 打开网站白屏 | Root Directory 没设对 | Vercel 项目 Settings → Root Directory 改为 `web` 后 Redeploy |
-| 登录提示网络错误 | 后端休眠中，或 CORS_ORIGIN 没配 | 等 1 分钟重试；检查 Render 环境变量 CORS_ORIGIN |
-| AI 答疑回复很"机械" | LLM_API_KEY 没配置，走了 Mock 降级 | Render → Environment 检查三个 LLM_ 变量 |
-| 后端部署失败 | Node 版本/依赖问题 | 看 Render 的 Deploy Logs，把报错发给助手 |
-| 401 未授权 | JWT_SECRET 在前后端重启间变更 | 保持 Render 上 JWT_SECRET 固定不变 |
-
----
-
-## 📌 验收清单
-
-- [ ] `https://recall-ai-api.onrender.com/api/v1/health` 返回 healthy
-- [ ] `https://recall-ai.vercel.app` 能打开登录页
-- [ ] 计算验证码显示正常、验证通过后可登录
-- [ ] demo / 123456 能进入首页
-- [ ] 数据看板有图表、15 秒自动刷新正常
-- [ ] AI 答疑是真实大模型回复（不是 Mock）
-- [ ] 手机浏览器打开同样正常（响应式）
+有国际信用卡也可用 [Render](https://render.com)：New Web Service → 连接 GitHub 仓库 → Root Directory `api` / Build `npm install` / Start `npm start` / Region Singapore / Instance **Free**，环境变量同上表。注意 Render 新注册账号即使选 Free 也可能强制要求绑卡。
