@@ -7,6 +7,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'))
 const HomePage = lazy(() => import('@/pages/HomePage'))
+const NotebookListPage = lazy(() => import('@/pages/NotebookListPage'))
 const CreatePage = lazy(() => import('@/pages/CreatePage'))
 const AIQAPage = lazy(() => import('@/pages/AIQAPage'))
 const ReviewPage = lazy(() => import('@/pages/ReviewPage'))
@@ -40,6 +41,7 @@ export default function App() {
           }
         >
           <Route index element={<HomePage />} />
+          <Route path="notebooks" element={<NotebookListPage />} />
           <Route path="create" element={<CreatePage />} />
           <Route path="qa" element={<AIQAPage />} />
           <Route path="review" element={<ReviewPage />} />

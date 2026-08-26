@@ -284,50 +284,181 @@ export default function ReviewPage() {
 
   if (stage === 'result' && result) {
     return (
-      <div className="max-w-3xl mx-auto p-xl">
-        <div className="text-center mb-xl">
-          <div style={{ fontSize: '48px' }} className="mb-md animate-bounce-sm">
+      <div style={{ maxWidth: '880px', margin: '0 auto', padding: '32px 24px' }}>
+        {/* 大标题 — 清新淡雅渐变 */}
+        <div className="text-center" style={{ marginBottom: '32px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }} className="animate-bounce-sm">
             {result.accuracy >= 80 ? '🎉' : result.accuracy >= 60 ? '💪' : '📚'}
           </div>
-          <h1 className="text-h1 font-bold gradient-text">复习完成！</h1>
+          <h1
+            className="font-bold"
+            style={{
+              fontSize: '36px',
+              background: 'linear-gradient(135deg, #7BA889 0%, #5B8C5A 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '2px',
+            }}
+          >
+            复习完成！
+          </h1>
         </div>
 
-        <div className="card p-xl mb-xl flex items-center justify-around">
+        {/* 大统计卡 */}
+        <div
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid #EDEAE2',
+            borderRadius: '20px',
+            padding: '32px',
+            marginBottom: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          }}
+        >
           {[
-            { value: `${result.accuracy}%`, label: '正确率', color: '#6C5CE7', icon: '🎯' },
-            { value: result.correct, label: '答对', color: '#00B894', icon: '✅' },
-            { value: result.wrong, label: '答错', color: '#FF6B6B', icon: '❌' },
-            { value: `${Math.floor(result.duration / 60)}'${result.duration % 60}''`, label: '用时', color: '#FDCB6E', icon: '⏱️' },
+            {
+              value: `${result.accuracy}%`,
+              label: '正确率',
+              color: '#A8B5E5',
+              bgColor: '#EEF1F8',
+              icon: '🎯',
+            },
+            {
+              value: result.correct,
+              label: '答对',
+              color: '#A8C5A0',
+              bgColor: '#EDF3E8',
+              icon: '✓',
+            },
+            {
+              value: result.wrong,
+              label: '答错',
+              color: '#D9A0A0',
+              bgColor: '#F6E8E8',
+              icon: '✕',
+            },
+            {
+              value: `${Math.floor(result.duration / 60)}'${String(result.duration % 60).padStart(2, '0')}''`,
+              label: '用时',
+              color: '#E5B894',
+              bgColor: '#F8EFE3',
+              icon: '⏱',
+            },
           ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <div style={{ fontSize: '16px' }} className="mb-xs">{stat.icon}</div>
-              <div className="text-h1 font-bold" style={{ color: stat.color }}>{stat.value}</div>
-              <div className="text-caption text-text-secondary mt-xs font-bold">{stat.label}</div>
+            <div key={i} className="text-center" style={{ minWidth: '120px' }}>
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  margin: '0 auto 8px',
+                  borderRadius: '12px',
+                  background: stat.bgColor,
+                  fontSize: '18px',
+                  color: stat.color,
+                  fontWeight: 700,
+                }}
+              >
+                {stat.icon}
+              </div>
+              <div
+                className="font-bold"
+                style={{
+                  fontSize: '36px',
+                  color: stat.color,
+                  lineHeight: 1,
+                  marginBottom: '4px',
+                }}
+              >
+                {stat.value}
+              </div>
+              <div style={{ color: '#9B9B9B', fontSize: '13px', fontWeight: 500 }}>
+                {stat.label}
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="space-y-sm mb-xl">
-          <h2 className="text-h2 text-text-primary font-bold mb-md">📝 逐题详情</h2>
+        {/* 逐题详情 */}
+        <div className="space-y-sm" style={{ marginBottom: '32px' }}>
+          <h2
+            className="font-bold flex items-center gap-sm"
+            style={{ color: '#3C3C3C', fontSize: '18px', marginBottom: '16px' }}
+          >
+            <span style={{ fontSize: '18px' }}>📝</span> 逐题详情
+          </h2>
           {result.details.map((detail, i) => (
             <div
               key={detail.question_id}
-              className="card p-lg border-l-8"
-              style={{ borderLeftColor: detail.is_correct ? '#00B894' : '#FF6B6B' }}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #EDEAE2',
+                borderLeft: detail.is_correct ? '4px solid #7BA889' : '4px solid #D9A0A0',
+                borderRadius: '14px',
+                padding: '16px 20px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}
             >
               <div className="flex items-start justify-between mb-sm">
-                <span className="text-body font-bold text-text-primary flex items-center gap-xs">
-                  <span style={{ fontSize: '14px' }}>{detail.is_correct ? '✅' : '❌'}</span>
+                <span
+                  className="flex items-center gap-sm font-semibold"
+                  style={{
+                    color: detail.is_correct ? '#5B8C5A' : '#B47A7A',
+                    fontSize: '14px',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      background: detail.is_correct ? '#EDF3E8' : '#F6E8E8',
+                      color: detail.is_correct ? '#5B8C5A' : '#B47A7A',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {detail.is_correct ? '✓' : '✕'}
+                  </span>
                   第{i + 1}题
                 </span>
               </div>
-              <p className="text-body text-text-secondary mb-sm line-clamp-2">{detail.content}</p>
-              <div className="flex gap-xl text-caption">
-                <span className="text-text-secondary font-bold">
-                  你的答案：<span className={detail.is_correct ? 'text-success' : 'text-error'}>{detail.user_answer || '未作答'}</span>
+              <p
+                className="line-clamp-2"
+                style={{ color: '#3C3C3C', fontSize: '14px', lineHeight: 1.6, marginBottom: '10px' }}
+              >
+                {detail.content}
+              </p>
+              <div className="flex flex-wrap gap-xl" style={{ fontSize: '13px' }}>
+                <span style={{ color: '#7A7A7A' }}>
+                  你的答案：
+                  <span
+                    style={{
+                      color: detail.is_correct ? '#5B8C5A' : '#B47A7A',
+                      fontWeight: 600,
+                      marginLeft: '4px',
+                    }}
+                  >
+                    {detail.user_answer || '未作答'}
+                  </span>
                 </span>
-                <span className="text-text-secondary font-bold">
-                  正确答案：<span className="text-success">{detail.correct_answer}</span>
+                <span style={{ color: '#7A7A7A' }}>
+                  正确答案：
+                  <span
+                    style={{
+                      color: detail.is_correct ? '#5B8C5A' : '#D9A0A0',
+                      fontWeight: 600,
+                      marginLeft: '4px',
+                    }}
+                  >
+                    {detail.correct_answer}
+                  </span>
                 </span>
               </div>
             </div>
@@ -335,10 +466,34 @@ export default function ReviewPage() {
         </div>
 
         <div className="flex gap-sm justify-center">
-          <button onClick={() => navigate('/')} className="btn-secondary px-xl">
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: '#FAFAF7',
+              color: '#6B6B6B',
+              padding: '12px 28px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: '1px solid #EDEAE2',
+              cursor: 'pointer',
+            }}
+          >
             🏠 返回首页
           </button>
-          <button onClick={handleRetry} className="btn-primary px-xl">
+          <button
+            onClick={handleRetry}
+            style={{
+              background: '#7BA889',
+              color: '#FFFFFF',
+              padding: '12px 28px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
             🔄 错题重练
           </button>
         </div>

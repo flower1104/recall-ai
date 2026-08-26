@@ -1,26 +1,28 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { useAuthStore } from '@/store/auth'
 import NetworkBanner from '@/components/common/NetworkBanner'
+import dayjs from 'dayjs'
 
 const NAV_ITEMS = [
-  { path: '/', label: '错题集', icon: '📚', color: '#6C5CE7' },
-  { path: '/create', label: '录入', icon: '✏️', color: '#00B894' },
-  { path: '/review', label: '复习', icon: '🔄', color: '#FDCB6E' },
-  { path: '/qa', label: 'AI答疑', icon: '🤖', color: '#FD79A8' },
-  { path: '/dashboard', label: '数据看板', icon: '📊', color: '#00CEC9' },
-  { path: '/help', label: '帮助', icon: '💡', color: '#FF7675' },
+  { path: '/', label: '首页', icon: '🏠' },
+  { path: '/notebooks', label: '错题', icon: '📔' },
+  { path: '/dashboard', label: '仪表盘', icon: '📊' },
+  { path: '/review', label: '复习中心', icon: '🔄' },
+  { path: '/create', label: '录入错题', icon: '✏️' },
+  { path: '/qa', label: 'AI 答疑', icon: '🤖' },
+  { path: '/help', label: '帮助', icon: '💡' },
 ]
 
 export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [location.pathname])
+  // 考研倒计时 — 默认目标：2026-12-20（可由后续版本改为可配置）
+  const examDate = useMemo(() => dayjs('2026-12-20'), [])
+  const daysToExam = examDate.diff(dayjs(), 'day')
+  const examLabel = daysToExam > 0 ? `距考研还有 ${daysToExam} 天` : '考研进行中'
 
   const handleLogout = () => {
     if (confirm('确定退出登录？👋')) {
@@ -30,129 +32,171 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* 浮动装饰背景 */}
-      <div className="float-decoration" style={{ top: '10%', left: '5%' }}>📖</div>
-      <div className="float-decoration" style={{ top: '60%', right: '8%', animation: 'float 4s ease-in-out infinite' }}>✏️</div>
-      <div className="float-decoration" style={{ bottom: '15%', left: '15%', fontSize: '40px' }}>🌟</div>
-
-      <NetworkBanner />
-
-      {/* 顶部导航栏 — 卡通渐变 */}
-      <header
-        className="sticky top-0 z-50 flex items-center px-xl"
+    <div className="flex flex-row min-h-screen" style={{ background: '#F7F6F2' }}>
+      {/* 左侧边栏 */}
+      <aside
+        className="hidden md:flex flex-col flex-shrink-0"
         style={{
-          height: '88px',
-          background: 'linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%)',
-          boxShadow: '0 4px 0 rgba(72,52,212,0.3), 0 8px 24px rgba(108,92,231,0.2)',
+          width: '232px',
+          background: '#FFFFFF',
+          borderRight: '1px solid #EDEAE2',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
         }}
       >
-        {/* 移动端汉堡按钮 */}
-        <button
-          className="md:hidden mr-md text-white"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="菜单"
-        >
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-
-        {/* Logo — 卡通泡泡 */}
+        {/* Logo */}
         <div
-          className="flex items-center gap-sm cursor-pointer mr-2xl"
+          className="flex items-center gap-sm px-lg cursor-pointer"
+          style={{ height: '72px', borderBottom: '1px solid #EDEAE2' }}
           onClick={() => navigate('/')}
         >
           <div
-            className="flex items-center justify-center text-white font-bold"
+            className="flex items-center justify-center"
             style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '18px',
-              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-              boxShadow: '0 4px 0 rgba(0,0,0,0.15), 0 6px 16px rgba(255,165,0,0.4)',
-              fontSize: '14px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #A8C5A0 0%, #7BA889 100%)',
+              boxShadow: '0 2px 6px rgba(123,168,137,0.25)',
+              fontSize: '18px',
             }}
           >
-            📝
+            🌿
           </div>
-          <span className="text-h2 font-bold text-white hidden sm:block" style={{ textShadow: '2px 2px 0 rgba(72,52,212,0.3)' }}>
+          <span className="text-body font-bold" style={{ color: '#3C3C3C', fontSize: '16px' }}>
             Recall
           </span>
         </div>
 
-        {/* 桌面端导航 */}
-        <nav className="hidden md:flex items-center gap-sm flex-1">
+        {/* 导航 */}
+        <nav className="flex-1 px-sm py-md overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`nav-link text-white hover:text-white hover:bg-white/15 ${isActive ? 'nav-link-active' : ''} flex items-center gap-xs`}
+                className="w-full flex items-center gap-sm text-left transition-all duration-150"
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  marginBottom: '2px',
+                  background: isActive ? 'rgba(168,197,160,0.18)' : 'transparent',
+                  color: isActive ? '#5B8C5A' : '#6B6B6B',
+                  fontWeight: isActive ? 600 : 500,
+                  fontSize: '14px',
+                }}
               >
-                <span style={{ fontSize: '16px' }}>{item.icon}</span>
+                <span style={{ fontSize: '16px', width: '20px', textAlign: 'center' }}>{item.icon}</span>
                 <span>{item.label}</span>
               </button>
             )
           })}
         </nav>
 
-        {/* 用户区域 */}
-        <div className="ml-auto flex items-center gap-md">
-          <div className="hidden sm:flex items-center gap-sm">
-            <div
-              className="flex items-center justify-center text-white font-bold"
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF7675 0%, #FD79A8 100%)',
-                boxShadow: '0 4px 0 rgba(0,0,0,0.1)',
-                fontSize: '14px',
-              }}
-            >
-              {user?.username?.[0]?.toUpperCase() || 'U'}
-            </div>
-            <span className="text-body text-white font-bold">{user?.username}</span>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="text-caption text-white/80 hover:text-white transition-colors font-bold bg-white/20 px-sm py-xs rounded-btn"
+        {/* 考研倒计时小卡片 */}
+        <div className="px-md pb-sm">
+          <div
+            className="rounded-card p-md"
+            style={{
+              background: 'linear-gradient(135deg, #F5E6D3 0%, #E8D5B7 100%)',
+              border: '1px solid rgba(139,109,63,0.15)',
+            }}
           >
-            退出 👋
-          </button>
+            <div className="text-caption" style={{ color: '#8B6D3F', fontSize: '12px' }}>
+              🎯 考研冲刺中
+            </div>
+            <div className="font-bold mt-xs" style={{ color: '#5B4423', fontSize: '13px', lineHeight: 1.5 }}>
+              {examLabel}
+            </div>
+            <div className="mt-xs" style={{ color: '#8B6D3F', fontSize: '11px' }}>
+              坚持学习 12 天
+            </div>
+          </div>
         </div>
-      </header>
 
-      {/* 移动端菜单 */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b-2 border-cream animate-pop-in">
-          <nav className="flex flex-col p-md gap-sm">
-            {NAV_ITEMS.map((item) => {
-              const isActive = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`text-left px-lg py-sm rounded-btn font-bold flex items-center gap-md transition-all ${
-                    isActive ? 'text-white' : 'text-text-secondary hover:bg-gray-50'
-                  }`}
-                  style={isActive ? { background: `linear-gradient(135deg, ${item.color} 0%, ${item.color}DD 100%)` } : {}}
-                >
-                  <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                  <span className="text-body">{item.label}</span>
-                </button>
-              )
-            })}
-          </nav>
+        {/* 用户区域 */}
+        <div
+          className="flex items-center gap-sm px-md py-md"
+          style={{ borderTop: '1px solid #EDEAE2' }}
+        >
+          <div
+            className="flex items-center justify-center text-white font-bold"
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #A8C5A0 0%, #7BA889 100%)',
+              fontSize: '13px',
+              flexShrink: 0,
+            }}
+          >
+            {user?.username?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="truncate" style={{ color: '#3C3C3C', fontSize: '13px', fontWeight: 600 }}>
+              {user?.username || '游客'}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="hover:underline"
+              style={{ color: '#9B9B9B', fontSize: '11px' }}
+            >
+              退出登录
+            </button>
+          </div>
         </div>
-      )}
+      </aside>
 
-      {/* 内容区 */}
-      <main className="flex-1 overflow-hidden relative z-10">
+      {/* 移动端顶部导航（简版） */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center px-md"
+        style={{ height: '56px', background: '#FFFFFF', borderBottom: '1px solid #EDEAE2' }}>
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-sm"
+        >
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #A8C5A0 0%, #7BA889 100%)',
+              fontSize: '16px',
+            }}
+          >
+            🌿
+          </div>
+          <span className="font-bold" style={{ color: '#3C3C3C', fontSize: '15px' }}>Recall</span>
+        </button>
+        <div className="ml-auto flex gap-sm overflow-x-auto">
+          {NAV_ITEMS.slice(0, 4).map((item) => {
+            const isActive = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+            return (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  background: isActive ? 'rgba(168,197,160,0.18)' : 'transparent',
+                  color: isActive ? '#5B8C5A' : '#6B6B6B',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 600 : 500,
+                  flexShrink: 0,
+                }}
+              >
+                {item.icon}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 主内容区 */}
+      <main className="flex-1 overflow-y-auto md:pt-0 pt-14">
+        <NetworkBanner />
         <Outlet />
       </main>
     </div>

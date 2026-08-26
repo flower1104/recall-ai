@@ -22,6 +22,9 @@ export function NotebookSkeleton() {
   )
 }
 
+/** NotebookSkeleton 兼容别名 — 用于错题集页面侧边栏列表 */
+export { NotebookSkeleton as NotebookListSkeleton }
+
 export function QuestionCardSkeleton() {
   return (
     <div className="card p-lg space-y-md">
