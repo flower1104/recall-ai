@@ -1,54 +1,58 @@
 # 🚀 免费部署上线指南（recall-ai 错题本）
 
 > 目标：**全程 $0、无需绑卡**，前后端全部上线，任何人都能通过网址访问。
-> 方案：**前端 Vercel + 后端 Hugging Face Spaces**，推 GitHub 自动更新。
+> 方案：**前端 Vercel + 后端 Zeabur**，GitHub 推送即自动更新。
 
 ## 部署架构
 
 ```
 用户浏览器 ──→ Vercel（前端页面，免费静态托管）
                   │
-                  └──→ Hugging Face Spaces（后端 API + AI 答疑，免费 Docker 容器）
+                  └──→ Zeabur（后端 API + AI 答疑，免费 Docker 容器）
                            │
                            └──→ 火山引擎 DeepSeek 大模型
 ```
 
-## 方案怎么选（后端）
+## 为什么选 Zeabur 做后端
 
-| 方案 | 费用 | 要不要绑卡 | 配置 | 备注 |
+| 平台 | 要不要绑卡 | 国内访问 | 支持 Docker | 免费版说明 |
 | --- | --- | --- | --- | --- |
-| **Hugging Face Spaces** ⭐推荐 | 免费 | ❌ 不要 | 2 vCPU / 16GB 内存 | 48 小时无访问才休眠 |
-| Render | 免费 | ⚠️ 需绑 Visa/Mastercard | 0.1 CPU / 512MB | 15 分钟无访问休眠 |
+| **Zeabur** ⭐ | ❌ 不要 | ✅ 快 | ✅ 支持 | GitHub 登录即可部署 |
+| Hugging Face Spaces | ❌ 不要 | ⚠️ 主站被墙 | ❌ **免费 Docker 已取消** | 仅 Static 免费 |
+| Render | ⚠️ 要绑卡 | ✅ 新加坡快 | ✅ 支持 | 新账号强制绑卡 |
 
-> 没有国际信用卡就直接用 HF Spaces，全流程不要卡。
+> 截至 2026 年 8 月，Hugging Face Spaces 的免费 Docker 空间已取消（仅 Static 免费）。本指南已切换为 **Zeabur**。
 
 ---
 
-## 第一步：后端 → Hugging Face Spaces（约 10 分钟）
+## 第一步：后端 → Zeabur（约 8 分钟）
 
-### 1.1 注册 HF 账号
+### 1.1 注册 / 登录
 
-1. 打开 [huggingface.co](https://huggingface.co) → 右上角 **Sign Up**
-2. 用邮箱注册即可（也支持 GitHub / Google 一键登录），**全程不需要任何银行卡**
+1. 打开 [zeabur.com](https://zeabur.com)
+2. 点 **Sign Up** → **Continue with GitHub**（用你 flower1104 账号）
+3. **不需要任何银行卡**
 
-### 1.2 创建 Space（后端容器）
+### 1.2 创建项目并导入仓库
 
-1. 登录后点右上角头像 → **New Space**
-2. 按下表填写：
+1. 登录后点 **Deploy New Project**
+2. 选择 **Import from GitHub** → 找到 `flower1104/recall-ai` → **Import**
+3. 项目名可以填 `recall-ai`
 
-| 配置项 | 填写值 |
-| --- | --- |
-| Space name | `recall-ai-api` |
-| License | 随意（如 MIT） |
-| **Select SDK** | **Docker** → **Blank** 模板 |
-| Space Hardware | **CPU basic · 2 vCPU · 16GB RAM · FREE** |
-| Visibility | **Public**（免费版仅支持公开） |
+### 1.3 创建后端服务
 
-3. 点 **Create Space**，得到一个空的白板 Space
+Zeabur 会自动识别仓库根目录的 `zbpack.json`（已配置好指向 `api/Dockerfile`），然后按 Docker 部署：
 
-### 1.3 配置环境变量（密钥只存这里，不进代码）
+1. 在项目中点 **Add Service** → **Deploy from source** → 仓库 `recall-ai`
+2. 服务名填 `recall-ai-api`
+3. **Root Directory**：填 **`api`**（如果不填，Zeabur 也会通过 `zbpack.json` 找到 Dockerfile）
+4. 点 **Deploy**
 
-进入 Space 页面 → **Settings** → 翻到 **Variables and secrets** → 逐条 **New secret** 添加：
+> 仓库里已经放了 `zbpack.json`：`{ "dockerfile": { "path": "api/Dockerfile" } }`，所以 Zeabur 能自动定位后端 Dockerfile。
+
+### 1.4 配置环境变量
+
+等服务卡片出现（还没部署完也行），点服务名进入 → **Variables** → 逐条添加：
 
 | Key | Value |
 | --- | --- |
@@ -58,78 +62,68 @@
 | `LLM_MODEL` | 抄本地 `api/.env` 同名值 |
 | `CORS_ORIGIN` | 先填 `http://localhost:5173`（前端上线后回来改成 Vercel 地址） |
 
-### 1.4 推送代码到 Space
-
-仓库已内置一键同步脚本（Windows PowerShell，在 `recall-ai/` 目录执行）：
-
-```powershell
-.\scripts\sync-to-hf.ps1 -HfUser <你的HF用户名> -HfToken <你的HF访问令牌>
-```
-
-- 脚本会自动：组装 `api/` 源码白名单（绝不包含 `.env`/日志）→ 推送到 Space → 清理本地痕迹
-- **HF 访问令牌获取**：HF 头像 → **Settings** → **Access Tokens** → **Create new token** → 类型选 **Write** → 复制保存（形如 `hf_xxxxxxxxxxxx`）
-- 以后后端代码更新，重跑一遍此脚本即可同步
-
-> 也可以让 AI 助手替你执行：把 HF 用户名和令牌发给它即可。
+> 和 Render 一样，密钥只存在 Zeabur，不会进代码仓库。
 
 ### 1.5 等待构建 + 验证
 
-1. 推送后 Space 自动构建（首次约 2~4 分钟），点 **Logs** 能看到构建进度
-2. 构建完成后浏览器访问：
+1. 首次构建约 2~5 分钟，点服务名 → **Logs** 看进度
+2. 构建成功后，Zeabur 会给一个域名，形如 `https://recall-ai-api-<随机串>.zeabur.app`
+3. 浏览器访问：
 
 ```
-https://<你的HF用户名>-recall-ai-api.hf.space/api/v1/health
+https://<你的域名>/api/v1/health
 ```
 
-看到 `{"status":"healthy",...}` 即成功 ✅（注意：HF 域名一律小写，用户名含大写也转小写）
+看到 `{"status":"healthy",...}` 即成功 ✅
 
 ---
 
 ## 第二步：前端 → Vercel（约 5 分钟）
 
-### 2.1 注册并导入仓库
+### 2.1 导入仓库
 
-1. 打开 [vercel.com](https://vercel.com) → **Sign Up** → 选 **Continue with GitHub**（用 flower1104 账号）
-2. 登录后 **Add New** → **Project** → 找到 `flower1104/recall-ai` → **Import**
-3. 按下表配置：
+1. 打开 [vercel.com](https://vercel.com) → 用 GitHub 登录
+2. **Add New** → **Project** → 导入 `flower1104/recall-ai`
+
+### 2.2 配置
 
 | 配置项 | 填写值 |
 | --- | --- |
-| Framework Preset | **Vite**（一般自动识别） |
-| **Root Directory** | **`web`** ⚠️ 千万别漏 |
-| Build Command | `npm run build`（默认即可） |
-| Output Directory | `dist`（默认即可） |
+| Framework Preset | **Vite** |
+| **Root Directory** | **`web`** ⚠️ 必填 |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
 
-### 2.2 配置前端环境变量
+### 2.3 环境变量
 
-在 **Environment Variables** 处添加（**先做第一步再做这里，地址才存在**）：
+添加：
 
 | Key | Value |
 | --- | --- |
-| `VITE_API_BASE_URL` | `https://<你的HF用户名>-recall-ai-api.hf.space/api/v1` |
+| `VITE_API_BASE_URL` | `https://<你的 Zeabur 域名>/api/v1` |
 
-4. 点 **Deploy**，等 1~2 分钟得到线上地址（形如 `https://recall-ai.vercel.app`）
+点 **Deploy**。
 
 ---
 
-## 第三步：打通 CORS（最后一环）
+## 第三步：打通 CORS
 
-前端地址拿到后，回到 **HF Space → Settings → Variables and secrets**：
+前端地址拿到后（如 `https://recall-ai.vercel.app`），回到 Zeabur 后端服务的 **Variables**：
 
-1. 把 `CORS_ORIGIN` 的值改成你的 Vercel 地址（可逗号分隔保留本地调试地址）：
+1. 修改 `CORS_ORIGIN` 为：
 
 ```
 https://recall-ai.vercel.app,http://localhost:5173
 ```
 
-2. 改完后 **Settings → Factory reboot**（或重跑同步脚本触发重启）使其生效
+2. **Redeploy** 或 **Restart** 服务使变量生效
 
 ### ✅ 端到端验收清单
 
 - [ ] 访问 Vercel 前端地址，页面正常打开
 - [ ] 用 `demo / 123456` 登录成功
 - [ ] 错题列表正常加载
-- [ ] AI 答疑能出结果、数学公式（LaTeX）正常渲染
+- [ ] AI 答疑能出结果、LaTeX 公式正常渲染
 - [ ] 手机流量打开同样正常
 
 ---
@@ -138,32 +132,31 @@ https://recall-ai.vercel.app,http://localhost:5173
 
 | 变量 | 配在哪 | 说明 |
 | --- | --- | --- |
-| `JWT_SECRET` | HF Space secret | 登录令牌密钥 |
-| `LLM_BASE_URL` | HF Space secret | 火山引擎接口地址 |
-| `LLM_API_KEY` | HF Space secret | 火山引擎密钥 |
-| `LLM_MODEL` | HF Space secret | 模型名 |
-| `CORS_ORIGIN` | HF Space secret | 前端线上地址（逗号分隔可多个） |
-| `VITE_API_BASE_URL` | Vercel | 后端 HF Space 地址 + `/api/v1` |
+| `JWT_SECRET` | Zeabur 服务 Variables | 登录令牌密钥 |
+| `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | Zeabur 服务 Variables | 火山引擎大模型配置 |
+| `CORS_ORIGIN` | Zeabur 服务 Variables | 前端线上地址（逗号分隔可多个） |
+| `VITE_API_BASE_URL` | Vercel | 后端 Zeabur 地址 + `/api/v1` |
 
 ## 常见问题排查
 
 | 现象 | 原因与解决 |
 | --- | --- |
-| Space 构建失败 | 点 **Logs** 看报错；常见为 Dockerfile 问题或 `npm ci` 失败 |
-| 访问 `hf.space` 地址 502/503 | Space 休眠唤醒中，等 1~2 分钟刷新；或到 Space 页面点 Settings → Factory reboot |
-| 前端请求报 CORS 错误 | `CORS_ORIGIN` 没填对/没包含前端域名；改完要重启（Factory reboot） |
+| Zeabur 构建失败 | 点 **Logs** 看报错；常见为 Dockerfile 或 `zbpack.json` 路径问题 |
+| 访问域名 502/503 | 免费版无流量会休眠，等几秒刷新；或手动 Restart 服务 |
+| 前端请求报 CORS 错误 | `CORS_ORIGIN` 没填对，改完要 Redeploy |
 | AI 答疑报 401/500 | `LLM_API_KEY` 或 `LLM_MODEL` 抄错，对照本地 `api/.env` |
-| 登录后刷新又变未登录 | 正常——内存数据库，Space 重启后账号重置（demo 账号自动恢复）；持久化见下 |
-| 国内打开很慢 | `vercel.app` / `hf.space` 国内直连不稳定，挂代理流畅；正式推广可后续换国内 CDN |
+| 登录后刷新又变未登录 | 内存数据库，服务重启后重置（demo 账号自动恢复） |
+| 国内打开 Vercel 慢 | `vercel.app` 国内直连时好时坏；可后续绑定自定义域名加速 |
 
 ## 免费版限制（提前知道，不慌）
 
-- **HF Spaces 免费版**：48 小时无访问会休眠（任意访问自动唤醒，1~2 分钟）；容器重启后内存数据库清零（demo 账号自动播种恢复）；代码公开（仓库本来就是 public，无影响）
-- **Vercel 免费版**：100GB 流量/月，个人项目完全够用
-- **后续升级路线**：接入免费 PostgreSQL（如 Neon）做数据持久化 → 告别重启丢数据
+- **Zeabur Free Plan**：无需信用卡；无流量一段时间后会休眠（下次访问自动唤醒）；资源有限但小项目够用；无 SLA
+- **Vercel Free**：100GB 流量/月，个人项目够用
+- **后续升级路线**：接入免费 PostgreSQL（如 Neon/Supabase）做数据持久化 → 告别重启丢数据
 
 ---
 
-## 附：Render 备选方案（需绑 Visa/Mastercard）
+## 附：其他方案为什么没选
 
-有国际信用卡也可用 [Render](https://render.com)：New Web Service → 连接 GitHub 仓库 → Root Directory `api` / Build `npm install` / Start `npm start` / Region Singapore / Instance **Free**，环境变量同上表。注意 Render 新注册账号即使选 Free 也可能强制要求绑卡。
+- **Hugging Face Spaces**：2026 年 8 月起免费 Docker Space 已取消，仅 Static 免费
+- **Render**：免费实例实际仍要绑 Visa/Mastercard 验证身份

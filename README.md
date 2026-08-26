@@ -187,9 +187,9 @@ docker-compose up -d
 
 ## ☁️ 云端部署（免费上线）
 
-推荐 **Vercel（前端） + Hugging Face Spaces（后端）** 全免费组合，**无需绑卡**，GitHub 推送即自动更新：
+推荐 **Vercel（前端） + Zeabur（后端）** 全免费组合，**无需绑卡**，GitHub 推送即自动更新：
 
-- **后端** → [Hugging Face Spaces](https://huggingface.co/spaces)（免费 Docker 容器，2 vCPU / 16GB 内存，仓库内置 `scripts/sync-to-hf.ps1` 一键同步）
+- **后端** → [Zeabur](https://zeabur.com)（免费 Docker 部署，GitHub 登录即可，国内访问快）
 - **前端** → [Vercel](https://vercel.com)（免费静态托管，Root Directory: `web`）
 
 📋 **完整保姆级步骤见 [DEPLOY.md](./DEPLOY.md)**（含环境变量配置表、常见问题排查、验收清单）
@@ -198,12 +198,12 @@ docker-compose up -d
 
 | 变量 | 平台 | 说明 |
 | --- | --- | --- |
-| `JWT_SECRET` | HF Space secret | 登录令牌密钥（强随机字符串） |
-| `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | HF Space secret | 大模型配置（AI 答疑） |
-| `CORS_ORIGIN` | HF Space secret | 前端线上地址（逗号分隔可多个） |
-| `VITE_API_BASE_URL` | Vercel | 后端线上地址（`https://<用户名>-recall-ai-api.hf.space/api/v1`） |
+| `JWT_SECRET` | Zeabur | 登录令牌密钥（强随机字符串） |
+| `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | Zeabur | 大模型配置（AI 答疑） |
+| `CORS_ORIGIN` | Zeabur | 前端线上地址（逗号分隔可多个） |
+| `VITE_API_BASE_URL` | Vercel | 后端线上地址（`https://xxx.zeabur.app/api/v1`） |
 
-> 也支持 Render / 任意容器平台（项目自带 `Dockerfile`，已适配非 root 用户运行）。
+> 也支持 Render / 任意容器平台（项目自带 `Dockerfile`）。
 
 ---
 
