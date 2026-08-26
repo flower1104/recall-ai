@@ -185,14 +185,25 @@ docker-compose up -d
 
 ---
 
-## ☁️ 云端部署
+## ☁️ 云端部署（免费上线）
 
-项目已包含 `Dockerfile`，支持部署到任何容器托管平台：
+推荐 **Vercel（前端） + Render（后端）** 全免费组合，GitHub 推送即自动更新：
 
-- **后端** → [Hugging Face Spaces](https://huggingface.co/spaces)（免费 Docker 容器，7860 端口）
-- **前端** → 腾讯 EdgeOne Pages / Vercel（静态托管，自动构建）
+- **后端** → [Render](https://render.com)（免费 Node.js 服务，Root Directory: `api`）
+- **前端** → [Vercel](https://vercel.com)（免费静态托管，Root Directory: `web`）
 
-部署时在平台环境变量中配置 `JWT_SECRET`、`LLM_BASE_URL`、`LLM_API_KEY`、`LLM_MODEL`、`CORS_ORIGIN` 即可。
+📋 **完整保姆级步骤见 [DEPLOY.md](./DEPLOY.md)**（含环境变量配置表、常见问题排查、验收清单）
+
+部署时在平台环境变量中配置：
+
+| 变量 | 平台 | 说明 |
+| --- | --- | --- |
+| `JWT_SECRET` | Render | 登录令牌密钥（强随机字符串） |
+| `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | Render | 大模型配置（AI 答疑） |
+| `CORS_ORIGIN` | Render | 前端线上地址（逗号分隔可多个） |
+| `VITE_API_BASE_URL` | Vercel | 后端线上地址（`https://xxx.onrender.com/api/v1`） |
+
+> 项目也包含 `Dockerfile`，支持部署到任何容器托管平台（如 Hugging Face Spaces，7860 端口）。
 
 ---
 
